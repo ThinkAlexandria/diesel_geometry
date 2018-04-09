@@ -1,11 +1,12 @@
 [package]
 name = "diesel_geometry"
-version = "1.2.0"
+version = "1.2.1"
 authors = ["YetAnotherMinion <yam@thinkalexandria.com>"]
 license = "MIT OR Apache-2.0"
 description = "Adds support for geometric types and functions to Diesel."
 readme = "README.md"
 documentation = "https://docs.rs/diesel_geometry"
+repository = "https://github.com/ThinkAlexandria/diesel_geometry"
 keywords = ["database", "sql", "orm"]
 categories = ["database"]
 
