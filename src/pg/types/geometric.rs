@@ -4,8 +4,8 @@ use byteorder::{NetworkEndian, ReadBytesExt, WriteBytesExt};
 use std::io::prelude::*;
 
 use diesel::deserialize::{self, FromSql};
-use diesel::expression::AsExpression;
 use diesel::expression::bound::Bound;
+use diesel::expression::AsExpression;
 use diesel::pg::Pg;
 use diesel::serialize::{self, IsNull, Output, ToSql};
 use diesel::sql_types::Nullable;
@@ -113,10 +113,10 @@ mod tests {
     use diesel::select;
     use diesel::serialize::ToSql;
 
-    use test_helpers::{connection, create_testing_output};
-    use sql_types::Point;
     use super::{PgBox, PgPoint};
     use expression_methods::*;
+    use sql_types::Point;
+    use test_helpers::{connection, create_testing_output};
 
     #[test]
     fn point_roundtrip() {

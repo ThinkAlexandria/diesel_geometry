@@ -1,0 +1,50 @@
+<!--
+If you want to report a bug, we added some points below you can fill out. If you want to request a feature, feel free to remove all the irrelevant text. In addition to this [issue tracker](https://github.com/diesel-rs/diesel/issues), you can also talk to Diesel Geometry maintainers by email at [devs](mailto:diesel_geometry-devel@thinkalexandria.com).
+-->
+
+## Setup
+
+### Versions
+
+- **Rust:**
+- **Diesel Geometry:**
+- **Database:**
+- **Operating System**
+
+### Feature Flags
+
+- **diesel\_geometry:**
+
+## Problem Description
+
+
+### What are you trying to accomplish?
+
+
+### What is the expected output?
+
+
+### What is the actual output?
+
+
+### Are you seeing any additional errors?
+
+
+### Steps to reproduce
+
+<!--
+Please include as much of your codebase as needed to reproduce the error.  If the relevant files are large, please consider linking to a public repository or a [Gist](https://gist.github.com/).
+
+Please post as much of your database schema as necessary. If you are using `infer_schema!`, you can use `diesel print-schema` and post the relevant parts from that.
+-->
+
+## Checklist
+
+- [ ] I have already looked over the [issue tracker](https://github.com/ThinkAlexandria/diesel_geometry/issues) for similar issues.
+
+
+<!--
+Thank you for your submission!  You're helping make Diesel Geometry more robust 🎉
+
+We'll try to respond as quickly as possible.
+-->

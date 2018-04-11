@@ -1,3 +1,5 @@
+//! PostgreSQL specific types
+
 pub mod geometric;
 
 pub mod sql_types {

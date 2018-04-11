@@ -1,6 +1,6 @@
 [package]
 name = "diesel_geometry"
-version = "1.2.1"
+version = "1.2.2"
 authors = ["YetAnotherMinion <yam@thinkalexandria.com>"]
 license = "MIT OR Apache-2.0"
 description = "Adds support for geometric types and functions to Diesel."

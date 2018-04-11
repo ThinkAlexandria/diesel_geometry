@@ -10,7 +10,7 @@ pub trait PgSameAsExpressionMethods<ST>: Expression + Sized {
     /// The "same as" operator, ~=, represents the usual notion of equality for the `point`, `box`,
     /// `polygon`, and `circle` types. Some of these types have an = operator, but = compares for
     /// equal areas only. The other scalar operators (<= and so on) likewise compare areas for
-    /// these types. 
+    /// these types.
     ///
     /// # Example
     /// ```rust
@@ -42,7 +42,7 @@ impl<T: Expression<SqlType = sql_types::Box>> PgSameAsExpressionMethods<sql_type
 
 pub trait PgIsContainedByExpressionMethods<ST>: Expression + Sized {
     /// Creates a PostgresSQL `<@` expression.
-    /// 
+    ///
     /// For geometric types.
     ///
     /// # Example

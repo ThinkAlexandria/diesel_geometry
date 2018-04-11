@@ -1,5 +1,6 @@
-Adds support for geometric types and geometric functions to Diesel.
+Support for geometric types and geometric functions for Diesel.
 ====================
+[![Crates.io](https://img.shields.io/crates/v/diesel_geometry.svg)](https://crates.io/crates/diesel_geometry)
 
 API Documentation [latest release](https://docs.rs/diesel_geometry)
 
