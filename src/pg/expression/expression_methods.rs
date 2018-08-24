@@ -71,8 +71,4 @@ pub trait PgIsContainedByExpressionMethods<ST>: Expression + Sized {
     }
 }
 
-impl<T> PgIsContainedByExpressionMethods<sql_types::Box> for T
-where
-    T: Expression<SqlType = Point>,
-{
-}
+impl<T> PgIsContainedByExpressionMethods<sql_types::Box> for T where T: Expression<SqlType = Point> {}

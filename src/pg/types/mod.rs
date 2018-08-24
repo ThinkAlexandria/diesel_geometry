@@ -110,4 +110,56 @@ pub mod sql_types {
     #[derive(Debug, Clone, Copy, Default, QueryId, SqlType)]
     #[postgres(oid = "603", array_oid = "1020")]
     pub struct Box;
+
+    /// The PostgreSQL [Circle](https://www.postgresql.org/docs/current/static/datatype-geometric.html) type.
+    ///
+    /// ### [`ToSql`](::diesel::serialize::ToSql) impls
+    ///
+    /// - [`PgCircle`](::pg::data_types::PgCircle)
+    ///
+    /// ### [`FromSql`](::diesel::deserialize::FromSql) impls
+    ///
+    /// - [`PgCircle`](::pg::data_types::PgCircle)
+    ///
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #![allow(dead_code)]
+    /// # #[macro_use] extern crate diesel;
+    /// # extern crate diesel_geometry;
+    /// # include!("../../doctest_setup.rs");
+    /// # use diesel_geometry::data_types::PgPoint;
+    /// use diesel_geometry::data_types::PgCircle;
+    ///
+    ///
+    /// table! {
+    ///     use diesel::sql_types::*;
+    ///     use diesel_geometry::sql_types::Circle;
+    ///     items {
+    ///         id -> Integer,
+    ///         name -> VarChar,
+    ///         location -> Circle,
+    ///     }
+    /// }
+    ///
+    /// # fn main() {
+    /// #     use diesel::insert_into;
+    /// #     use items::dsl::*;
+    /// #     let connection = connection_no_data();
+    /// #     connection.execute("CREATE TABLE items (
+    /// #         id SERIAL PRIMARY KEY,
+    /// #         name VARCHAR NOT NULL,
+    /// #         location CIRCLE NOT NULL
+    /// #     )").unwrap();
+    /// let inserted_location = insert_into(items)
+    ///     .values((name.eq("Shiny Thing"), location.eq(PgCircle(PgPoint(3.1, 6.6), 9.4))))
+    ///     .returning(location)
+    ///     .get_result(&connection);
+    /// assert_eq!(Ok(PgCircle(PgPoint(3.1, 6.6), 9.4)), inserted_location);
+    /// # }
+    /// ```
+    #[derive(Debug, Clone, Copy, Default, QueryId, SqlType)]
+    #[postgres(oid = "718", array_oid = "719")]
+    pub struct Circle;
 }

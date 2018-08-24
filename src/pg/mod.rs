@@ -13,5 +13,5 @@ pub mod types;
 /// level types.
 pub mod data_types {
     #[doc(inline)]
-    pub use super::types::geometric::{PgBox, PgPoint};
+    pub use super::types::geometric::{PgBox, PgCircle, PgPoint};
 }

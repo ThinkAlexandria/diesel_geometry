@@ -103,6 +103,68 @@ impl ToSql<Nullable<sql_types::Box>, Pg> for PgBox {
     }
 }
 
+/// Circle is represented in Postgres as a tuple of center point and radius `(center, radius)`.
+/// This struct is a dumb wrapper type, meant only to indicate the tuple's meaning.
+#[derive(Debug, Clone, PartialEq, Copy, FromSqlRow)]
+pub struct PgCircle(pub PgPoint, pub f64);
+
+impl AsExpression<sql_types::Circle> for PgCircle {
+    type Expression = Bound<sql_types::Circle, Self>;
+
+    fn as_expression(self) -> Self::Expression {
+        Bound::new(self)
+    }
+}
+
+impl<'a> AsExpression<sql_types::Circle> for &'a PgCircle {
+    type Expression = Bound<sql_types::Circle, Self>;
+
+    fn as_expression(self) -> Self::Expression {
+        Bound::new(self)
+    }
+}
+
+impl AsExpression<Nullable<sql_types::Circle>> for PgCircle {
+    type Expression = Bound<Nullable<sql_types::Circle>, Self>;
+
+    fn as_expression(self) -> Self::Expression {
+        Bound::new(self)
+    }
+}
+
+impl<'a> AsExpression<Nullable<sql_types::Circle>> for &'a PgCircle {
+    type Expression = Bound<Nullable<sql_types::Circle>, Self>;
+
+    fn as_expression(self) -> Self::Expression {
+        Bound::new(self)
+    }
+}
+
+impl FromSql<sql_types::Circle, Pg> for PgCircle {
+    fn from_sql(bytes: Option<&[u8]>) -> deserialize::Result<Self> {
+        let bytes = not_none!(bytes);
+        let (center_bytes, mut radius_bytes) = bytes.split_at(16);
+        let center = PgPoint::from_sql(Some(center_bytes))?;
+        let radius = radius_bytes.read_f64::<NetworkEndian>()?;
+        Ok(PgCircle(center, radius))
+    }
+}
+
+impl ToSql<sql_types::Circle, Pg> for PgCircle {
+    fn to_sql<W: Write>(&self, out: &mut Output<W, Pg>) -> serialize::Result {
+        <PgPoint as ToSql<Point, Pg>>::to_sql(&self.0, out)?;
+        out.write_f64::<NetworkEndian>(self.1)?;
+
+        Ok(IsNull::No)
+    }
+}
+
+impl ToSql<Nullable<sql_types::Circle>, Pg> for PgCircle {
+    fn to_sql<W: Write>(&self, out: &mut Output<W, Pg>) -> serialize::Result {
+        ToSql::<sql_types::Circle, Pg>::to_sql(self, out)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use diesel;
@@ -113,8 +175,10 @@ mod tests {
     use diesel::select;
     use diesel::serialize::ToSql;
 
-    use super::{PgBox, PgPoint};
+    //use super::{PgBox, PgPoint, PgCircle};
     use expression_methods::*;
+    use pg::types::geometric::PgBox;
+    use pg::types::geometric::PgPoint;
     use sql_types::Point;
     use test_helpers::{connection, create_testing_output};
 
@@ -173,15 +237,14 @@ mod tests {
         #[table_name = "items"]
         struct NewItem {
             name: &'static str,
-            location: PgPoint,
+            location: ::pg::types::geometric::PgPoint,
         }
         //use self::schema::items::dsl::*;
         let _query_location = diesel::insert_into(items::table)
             .values(&NewItem {
                 name: "Shiny Thing",
                 location: PgPoint(3.1, 9.4),
-            })
-            .returning(schema::items::dsl::location);
+            }).returning(schema::items::dsl::location);
     }
 
     #[test]
@@ -192,7 +255,7 @@ mod tests {
         struct Item {
             id: i32,
             name: String,
-            location: PgPoint,
+            location: ::pg::types::geometric::PgPoint,
         }
         use self::schema::items::dsl::*;
         let _query_row = items
@@ -210,14 +273,13 @@ mod tests {
             id SERIAL PRIMARY KEY,
             boxes BOX
         )",
-            )
-            .unwrap();
+            ).unwrap();
         use self::schema::roundtrip;
         #[derive(Debug, PartialEq, Insertable, Queryable)]
         #[table_name = "roundtrip"]
         struct Roundtrip {
             id: i32,
-            boxes: Option<PgBox>,
+            boxes: Option<::pg::types::geometric::PgBox>,
         }
         let data = Roundtrip {
             id: 6,
