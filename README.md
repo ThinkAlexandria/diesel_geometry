@@ -21,3 +21,20 @@ Unless you explicitly state otherwise, any contribution you intentionally submit
 for inclusion in the work, as defined in the Apache-2.0 license, shall be
 dual-licensed as above, without any additional terms or conditions.
 
+
+### Testing
+
+You must have a running instance of Postgres and set the environmetal variable
+`PG_DATABASE_URL` in order to run integration tests locally.
+
+You can start a postgres database locally using docker with:
+
+```
+docker run -d --rm --name postgres -p 5432:5432 postgres:10
+```
+
+And then run:
+
+```
+PG_DATABASE_URL=postgres://postgres:postgres@localhost:5432 cargo test
+```
