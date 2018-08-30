@@ -73,6 +73,7 @@ pub mod sql_types {
     /// # extern crate diesel_geometry;
     /// # include!("../../doctest_setup.rs");
     /// use diesel_geometry::data_types::{PgPoint, PgBox};
+    /// use diesel_geometry::sql_types;
     ///
     ///
     /// table! {
@@ -102,7 +103,9 @@ pub mod sql_types {
     ///     .unwrap();
     /// let inserted_location = items
     ///     .select(location)
-    ///     .filter(location.is_contained_by(PgBox(PgPoint(0.,0.), PgPoint(10., 10.))))
+    ///     .filter(location.is_contained_by(
+    ///         PgBox(PgPoint(0.,0.), PgPoint(10.,10.)).into_sql::<sql_types::Box>()
+    ///     ))
     ///     .first(&connection);
     /// assert_eq!(Ok(PgPoint(3.1, 9.4)), inserted_location);
     /// # }

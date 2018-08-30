@@ -2,7 +2,7 @@ use diesel::expression::{AsExpression, Expression};
 use diesel::pg::expression::operators::IsContainedBy;
 
 use super::operators::SameAs;
-use sql_types::{self, Point};
+use sql_types::{self, Circle, Point};
 
 pub trait PgSameAsExpressionMethods<ST>: Expression + Sized {
     /// Creates a PostgresSQL `~=`  expression.
@@ -39,6 +39,7 @@ pub trait PgSameAsExpressionMethods<ST>: Expression + Sized {
 
 impl<T: Expression<SqlType = Point>> PgSameAsExpressionMethods<Point> for T {}
 impl<T: Expression<SqlType = sql_types::Box>> PgSameAsExpressionMethods<sql_types::Box> for T {}
+impl<T: Expression<SqlType = Circle>> PgSameAsExpressionMethods<Circle> for T {}
 
 pub trait PgIsContainedByExpressionMethods<ST>: Expression + Sized {
     /// Creates a PostgresSQL `<@` expression.
@@ -52,6 +53,7 @@ pub trait PgIsContainedByExpressionMethods<ST>: Expression + Sized {
     /// # extern crate diesel_geometry;
     /// # include!("../../doctest_setup.rs");
     /// # use diesel_geometry::data_types::{PgBox, PgPoint};
+    /// # use diesel_geometry::sql_types;
     /// #
     /// # fn main() {
     /// #     use schema::shapes::dsl::*;
@@ -59,7 +61,11 @@ pub trait PgIsContainedByExpressionMethods<ST>: Expression + Sized {
     /// // Looking for point at (1,2)
     /// let found_drawing_id = shapes
     ///     .select(drawing_id)
-    ///     .filter(centroid.is_contained_by(PgBox(PgPoint(0.5, 1.5), PgPoint(3.0, 5.0))))
+    ///     .filter(
+    ///         centroid.is_contained_by(
+    ///             PgBox(PgPoint(0.5, 1.5), PgPoint(3.0,5.0)).into_sql::<sql_types::Box>()
+    ///         )
+    ///     )
     ///     .first(&connection);
     /// assert_eq!(Ok(2), found_drawing_id);
     /// # }
@@ -71,4 +77,24 @@ pub trait PgIsContainedByExpressionMethods<ST>: Expression + Sized {
     }
 }
 
-impl<T> PgIsContainedByExpressionMethods<sql_types::Box> for T where T: Expression<SqlType = Point> {}
+// A Circle can contain a Point or a Circle but not a Box
+pub trait CanBeContainedByCircle {}
+impl CanBeContainedByCircle for Point {}
+impl CanBeContainedByCircle for Circle {}
+
+// A Box can contain a Point, Circle, and a Box
+pub trait CanBeContainedByBox {}
+impl CanBeContainedByBox for Point {}
+impl CanBeContainedByBox for Circle {}
+impl CanBeContainedByBox for sql_types::Box {}
+
+impl<T> PgIsContainedByExpressionMethods<Circle> for T
+where
+    T: Expression,
+    T::SqlType: CanBeContainedByCircle,
+{}
+impl<T> PgIsContainedByExpressionMethods<sql_types::Box> for T
+where
+    T: Expression,
+    T::SqlType: CanBeContainedByBox,
+{}

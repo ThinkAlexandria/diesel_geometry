@@ -9,11 +9,12 @@ use diesel::expression::AsExpression;
 use diesel::pg::Pg;
 use diesel::serialize::{self, IsNull, Output, ToSql};
 use diesel::sql_types::Nullable;
-use sql_types::{self, Point};
+use sql_types::{self, Circle, Point};
 
 /// Point is represented in Postgres as a tuple of 64 bit floating point values (x, y).  This
 /// struct is a dumb wrapper type, meant only to indicate the tuple's meaning.
 #[derive(Debug, Clone, PartialEq, Copy, FromSqlRow, AsExpression)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[sql_type = "Point"]
 pub struct PgPoint(pub f64, pub f64);
 
@@ -37,39 +38,45 @@ impl ToSql<Point, Pg> for PgPoint {
 /// Box is represented in Postgres as a tuple of points `(lower left, upper
 /// right)`. This struct is a dumb wrapper type, meant only to indicate the tuple's meaning.
 #[derive(Debug, Clone, PartialEq, Copy, FromSqlRow)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(AsExpression)]
+#[sql_type = "sql_types::Box"]
 pub struct PgBox(pub PgPoint, pub PgPoint);
 
-impl AsExpression<sql_types::Box> for PgBox {
-    type Expression = Bound<sql_types::Box, Self>;
+// We must manually derive AsExpression because sql_types::Box would conflict with the builtin Box
+// type
 
-    fn as_expression(self) -> Self::Expression {
-        Bound::new(self)
-    }
-}
-
-impl<'a> AsExpression<sql_types::Box> for &'a PgBox {
-    type Expression = Bound<sql_types::Box, Self>;
-
-    fn as_expression(self) -> Self::Expression {
-        Bound::new(self)
-    }
-}
-
-impl AsExpression<Nullable<sql_types::Box>> for PgBox {
-    type Expression = Bound<Nullable<sql_types::Box>, Self>;
-
-    fn as_expression(self) -> Self::Expression {
-        Bound::new(self)
-    }
-}
-
-impl<'a> AsExpression<Nullable<sql_types::Box>> for &'a PgBox {
-    type Expression = Bound<Nullable<sql_types::Box>, Self>;
-
-    fn as_expression(self) -> Self::Expression {
-        Bound::new(self)
-    }
-}
+//impl AsExpression<sql_types::Box> for PgBox {
+//    type Expression = Bound<sql_types::Box, Self>;
+//
+//    fn as_expression(self) -> Self::Expression {
+//        Bound::new(self)
+//    }
+//}
+//
+//impl<'a> AsExpression<sql_types::Box> for &'a PgBox {
+//    type Expression = Bound<sql_types::Box, Self>;
+//
+//    fn as_expression(self) -> Self::Expression {
+//        Bound::new(self)
+//    }
+//}
+//
+//impl AsExpression<Nullable<sql_types::Box>> for PgBox {
+//    type Expression = Bound<Nullable<sql_types::Box>, Self>;
+//
+//    fn as_expression(self) -> Self::Expression {
+//        Bound::new(self)
+//    }
+//}
+//
+//impl<'a> AsExpression<Nullable<sql_types::Box>> for &'a PgBox {
+//    type Expression = Bound<Nullable<sql_types::Box>, Self>;
+//
+//    fn as_expression(self) -> Self::Expression {
+//        Bound::new(self)
+//    }
+//}
 
 // https://github.com/postgres/postgres/blob/9d4649ca49416111aee2c84b7e4441a0b7aa2fac/src/backend/utils/adt/geo_ops.c
 
@@ -97,48 +104,18 @@ impl ToSql<sql_types::Box, Pg> for PgBox {
     }
 }
 
-impl ToSql<Nullable<sql_types::Box>, Pg> for PgBox {
-    fn to_sql<W: Write>(&self, out: &mut Output<W, Pg>) -> serialize::Result {
-        ToSql::<sql_types::Box, Pg>::to_sql(self, out)
-    }
-}
+//impl ToSql<Nullable<sql_types::Box>, Pg> for PgBox {
+//    fn to_sql<W: Write>(&self, out: &mut Output<W, Pg>) -> serialize::Result {
+//        ToSql::<sql_types::Box, Pg>::to_sql(self, out)
+//    }
+//}
 
 /// Circle is represented in Postgres as a tuple of center point and radius `(center, radius)`.
 /// This struct is a dumb wrapper type, meant only to indicate the tuple's meaning.
-#[derive(Debug, Clone, PartialEq, Copy, FromSqlRow)]
+#[derive(Debug, Clone, PartialEq, Copy, FromSqlRow, AsExpression)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[sql_type = "Circle"]
 pub struct PgCircle(pub PgPoint, pub f64);
-
-impl AsExpression<sql_types::Circle> for PgCircle {
-    type Expression = Bound<sql_types::Circle, Self>;
-
-    fn as_expression(self) -> Self::Expression {
-        Bound::new(self)
-    }
-}
-
-impl<'a> AsExpression<sql_types::Circle> for &'a PgCircle {
-    type Expression = Bound<sql_types::Circle, Self>;
-
-    fn as_expression(self) -> Self::Expression {
-        Bound::new(self)
-    }
-}
-
-impl AsExpression<Nullable<sql_types::Circle>> for PgCircle {
-    type Expression = Bound<Nullable<sql_types::Circle>, Self>;
-
-    fn as_expression(self) -> Self::Expression {
-        Bound::new(self)
-    }
-}
-
-impl<'a> AsExpression<Nullable<sql_types::Circle>> for &'a PgCircle {
-    type Expression = Bound<Nullable<sql_types::Circle>, Self>;
-
-    fn as_expression(self) -> Self::Expression {
-        Bound::new(self)
-    }
-}
 
 impl FromSql<sql_types::Circle, Pg> for PgCircle {
     fn from_sql(bytes: Option<&[u8]>) -> deserialize::Result<Self> {
@@ -159,12 +136,6 @@ impl ToSql<sql_types::Circle, Pg> for PgCircle {
     }
 }
 
-impl ToSql<Nullable<sql_types::Circle>, Pg> for PgCircle {
-    fn to_sql<W: Write>(&self, out: &mut Output<W, Pg>) -> serialize::Result {
-        ToSql::<sql_types::Circle, Pg>::to_sql(self, out)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use diesel;
@@ -175,11 +146,9 @@ mod tests {
     use diesel::select;
     use diesel::serialize::ToSql;
 
-    //use super::{PgBox, PgPoint, PgCircle};
     use expression_methods::*;
-    use pg::types::geometric::PgBox;
-    use pg::types::geometric::PgPoint;
-    use sql_types::Point;
+    use pg::types::geometric::{PgBox, PgCircle, PgPoint};
+    use sql_types::{self, Circle, Point};
     use test_helpers::{connection, create_testing_output};
 
     #[test]
@@ -222,9 +191,17 @@ mod tests {
         table! {
             use diesel::sql_types::*;
             use sql_types::Box;
-            roundtrip {
+            box_roundtrip {
                 id -> Integer,
                 boxes -> Nullable<Box>,
+            }
+        }
+        table! {
+            use diesel::sql_types::*;
+            use sql_types::Circle;
+            circle_roundtrip {
+                id -> Integer,
+                circles -> Nullable<Circle>,
             }
         }
     }
@@ -269,14 +246,14 @@ mod tests {
         let connection = connection();
         connection
             .execute(
-                "CREATE TABLE roundtrip (
+                "CREATE TABLE box_roundtrip (
             id SERIAL PRIMARY KEY,
             boxes BOX
         )",
             ).unwrap();
-        use self::schema::roundtrip;
+        use self::schema::box_roundtrip;
         #[derive(Debug, PartialEq, Insertable, Queryable)]
-        #[table_name = "roundtrip"]
+        #[table_name = "box_roundtrip"]
         struct Roundtrip {
             id: i32,
             boxes: Option<::pg::types::geometric::PgBox>,
@@ -285,25 +262,69 @@ mod tests {
             id: 6,
             boxes: Some(PgBox(PgPoint(0., 0.), PgPoint(3., 4.))),
         };
-        diesel::insert_into(roundtrip::table)
+        diesel::insert_into(box_roundtrip::table)
             .values(&data)
             .execute(&connection)
             .unwrap();
-        let x = roundtrip::table.first::<Roundtrip>(&connection);
+        let x = box_roundtrip::table.first::<Roundtrip>(&connection);
         match x {
             Ok(record) => assert_eq!(data, record),
             Err(_) => panic!(),
         }
     }
 
+    use diesel::expression::AsExpression;
+
     #[test]
     fn point_contained_queries() {
         let connection = connection();
         let point = PgPoint(1., 1.);
         let bounding_box = PgBox(PgPoint(0., 0.), PgPoint(2., 2.));
-        let is_contained = diesel::select(point.into_sql::<Point>().is_contained_by(bounding_box))
-            .get_result::<bool>(&connection)
-            .unwrap();
+        let bounding_circle = PgCircle(PgPoint(0., 0.), 3.0);
+        let is_contained = diesel::select(
+            point
+                .into_sql::<Point>()
+                .is_contained_by(bounding_circle.into_sql::<Circle>()),
+        ).get_result::<bool>(&connection)
+        .unwrap();
         assert!(is_contained);
+        let is_contained = diesel::select(
+            AsExpression::<Point>::as_expression(point)
+                .is_contained_by(bounding_box.into_sql::<sql_types::Box>()),
+        ).get_result::<bool>(&connection)
+        .unwrap();
+        assert!(is_contained);
+    }
+
+    #[test]
+    fn circle_roundtrip() {
+        let connection = connection();
+        connection
+            .execute(
+                "CREATE TABLE circle_roundtrip (
+            id SERIAL PRIMARY KEY,
+            circles CIRCLE
+        )",
+            ).unwrap();
+        use self::schema::circle_roundtrip;
+        #[derive(Debug, PartialEq, Insertable, Queryable)]
+        #[table_name = "circle_roundtrip"]
+        struct Roundtrip {
+            id: i32,
+            circles: Option<::pg::types::geometric::PgCircle>,
+        }
+        let data = Roundtrip {
+            id: 6,
+            circles: Some(PgCircle(PgPoint(3., 4.), 1.5)),
+        };
+        diesel::insert_into(circle_roundtrip::table)
+            .values(&data)
+            .execute(&connection)
+            .unwrap();
+        let x = circle_roundtrip::table.first::<Roundtrip>(&connection);
+        match x {
+            Ok(record) => assert_eq!(data, record),
+            Err(_) => panic!(),
+        }
     }
 }
