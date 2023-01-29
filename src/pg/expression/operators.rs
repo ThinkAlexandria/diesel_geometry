@@ -1,3 +1,4 @@
 use diesel::pg::Pg;
 
-diesel_infix_operator!(SameAs, " ~= ", backend: Pg);
+infix_operator!(SameAs, " ~= ", backend: Pg);
+infix_operator!(IsContainedBy, " <@ ", backend: Pg);

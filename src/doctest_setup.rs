@@ -2,7 +2,7 @@
 extern crate cfg_if;
 extern crate dotenv;
 
-use diesel::prelude::*;
+use diesel::{prelude::*, connection::SimpleConnection};
 use diesel_geometry::prelude::*;
 use self::dotenv::dotenv;
 
@@ -17,30 +17,30 @@ cfg_if! {
         }
 
         fn connection_no_data() -> PgConnection {
-            let connection = connection_no_transaction();
+            let mut connection = connection_no_transaction();
             connection.begin_test_transaction().unwrap();
-            connection.execute("DROP TABLE IF EXISTS drawings CASCADE").unwrap();
-            connection.execute("DROP TABLE IF EXISTS shapes CASCADE").unwrap();
+            connection.batch_execute("DROP TABLE IF EXISTS drawings CASCADE").unwrap();
+            connection.batch_execute("DROP TABLE IF EXISTS shapes CASCADE").unwrap();
 
             connection
         }
 
         #[allow(dead_code)]
         fn establish_connection() -> PgConnection {
-            let connection = connection_no_data();
+            let mut connection = connection_no_data();
 
-            connection.execute("CREATE TABLE drawings (
+            connection.batch_execute("CREATE TABLE drawings (
                 id SERIAL PRIMARY KEY,
                 title VARCHAR NOT NULL
             )").unwrap();
-            connection.execute("INSERT INTO drawings (title) VALUES ('Cubism'), ('Airplanes')").unwrap();
+            connection.batch_execute("INSERT INTO drawings (title) VALUES ('Cubism'), ('Airplanes')").unwrap();
 
-            connection.execute("CREATE TABLE shapes (
+            connection.batch_execute("CREATE TABLE shapes (
                 id SERIAL PRIMARY KEY,
                 drawing_id INTEGER NOT NULL,
                 centroid POINT
             )").unwrap();
-            connection.execute("INSERT INTO shapes (drawing_id, centroid) VALUES
+            connection.batch_execute("INSERT INTO shapes (drawing_id, centroid) VALUES
                                (1, point '(0, 0)'),
                                (2, point '(1,2)')").unwrap();
 

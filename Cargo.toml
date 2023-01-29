@@ -1,6 +1,6 @@
 [package]
 name = "diesel_geometry"
-version = "1.4.0"
+version = "2.0.0"
 authors = ["YetAnotherMinion <yam@thinkalexandria.com>"]
 license = "MIT OR Apache-2.0"
 description = "Adds support for geometric types and functions to Diesel."
@@ -12,7 +12,7 @@ categories = ["database"]
 
 [dependencies]
 byteorder = "1.0"
-diesel = { version = ">=1.2, <1.5", features = ["postgres"] }
+diesel = { version = "2", features = ["postgres"] }
 serde = { version = "1.0", features = ["derive"], optional = true }
 
 [dev-dependencies]
