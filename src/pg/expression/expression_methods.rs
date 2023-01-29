@@ -28,7 +28,7 @@ pub trait PgSameAsExpressionMethods<ST: diesel::sql_types::SingleValue>: Express
     ///     .first(&mut connection);
     /// assert_eq!(Ok(2), found_drawing_id);
     /// # }
-    fn same_as<T>(self: Self, other: T) -> SameAs<Self, T::Expression>
+    fn same_as<T>(self, other: T) -> SameAs<Self, T::Expression>
     where
         T: AsExpression<ST>,
     {
@@ -68,7 +68,8 @@ pub trait PgIsContainedByExpressionMethods<ST: diesel::sql_types::SingleValue>: 
     ///     .first(&mut connection);
     /// assert_eq!(Ok(2), found_drawing_id);
     /// # }
-    fn is_contained_by<T>(self: Self, other: T) -> IsContainedBy<Self, T::Expression>
+    #[allow(clippy::wrong_self_convention)]
+    fn is_contained_by<T>(self, other: T) -> IsContainedBy<Self, T::Expression>
     where
         T: AsExpression<ST>,
     {

@@ -51,7 +51,7 @@ pub mod sql_types {
     /// # }
     /// ```
     #[derive(Debug, Clone, Copy, Default, QueryId, SqlType)]
-    #[postgres(oid = "600", array_oid = "1017")]
+    #[diesel(postgres_type(oid = 600, array_oid = 1017))]
     pub struct Point;
 
     /// The PostgreSQL [Box](https://www.postgresql.org/docs/current/static/datatype-geometric.html) type.
@@ -111,7 +111,7 @@ pub mod sql_types {
     /// # }
     /// ```
     #[derive(Debug, Clone, Copy, Default, QueryId, SqlType)]
-    #[postgres(oid = "603", array_oid = "1020")]
+    #[diesel(postgres_type(oid = 603, array_oid = 1020))]
     pub struct Box;
 
     /// The PostgreSQL [Circle](https://www.postgresql.org/docs/current/static/datatype-geometric.html) type.
@@ -163,6 +163,6 @@ pub mod sql_types {
     /// # }
     /// ```
     #[derive(Debug, Clone, Copy, Default, QueryId, SqlType)]
-    #[postgres(oid = "718", array_oid = "719")]
+    #[diesel(postgres_type(oid = 718, array_oid = 719))]
     pub struct Circle;
 }

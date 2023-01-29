@@ -1,21 +1,19 @@
 //! Support for Geometric types under PostgreSQL.
 
 use byteorder::{NetworkEndian, ReadBytesExt, WriteBytesExt};
-use diesel::backend::{self, RawValue};
-use std::io::prelude::*;
+use diesel::backend::RawValue;
 
 use diesel::deserialize::{self, FromSql};
 use diesel::expression::AsExpression;
 use diesel::pg::Pg;
 use diesel::serialize::{self, IsNull, Output, ToSql};
-use diesel::sql_types::Nullable;
 use sql_types::{self, Circle, Point};
 
 /// Point is represented in Postgres as a tuple of 64 bit floating point values (x, y).  This
 /// struct is a dumb wrapper type, meant only to indicate the tuple's meaning.
 #[derive(Debug, Clone, PartialEq, Copy, FromSqlRow, AsExpression)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[sql_type = "Point"]
+#[diesel(sql_type = Point)]
 pub struct PgPoint(pub f64, pub f64);
 
 impl PgPoint {
@@ -48,7 +46,7 @@ impl ToSql<Point, Pg> for PgPoint {
 #[derive(Debug, Clone, PartialEq, Copy, FromSqlRow)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(AsExpression)]
-#[sql_type = "sql_types::Box"]
+#[diesel(sql_type = sql_types::Box)]
 pub struct PgBox(pub PgPoint, pub PgPoint);
 
 // We must manually derive AsExpression because sql_types::Box would conflict with the builtin Box
@@ -122,7 +120,7 @@ impl ToSql<sql_types::Box, Pg> for PgBox {
 /// This struct is a dumb wrapper type, meant only to indicate the tuple's meaning.
 #[derive(Debug, Clone, PartialEq, Copy, FromSqlRow, AsExpression)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[sql_type = "Circle"]
+#[diesel(sql_type = Circle)]
 pub struct PgCircle(pub PgPoint, pub f64);
 
 impl FromSql<sql_types::Circle, Pg> for PgCircle {
@@ -148,12 +146,9 @@ impl ToSql<sql_types::Circle, Pg> for PgCircle {
 mod tests {
     use diesel;
     use diesel::connection::SimpleConnection;
-    use diesel::deserialize::FromSql;
     use diesel::dsl::sql;
-    use diesel::pg::Pg;
     use diesel::prelude::*;
     use diesel::select;
-    use diesel::serialize::ToSql;
 
     use expression_methods::*;
     use pg::types::geometric::{PgBox, PgCircle, PgPoint};
@@ -202,7 +197,7 @@ mod tests {
         // Compile check that PgPoint can be used in insertable context,
         use self::schema::items;
         #[derive(Debug, Clone, Copy, Insertable)]
-        #[table_name = "items"]
+        #[diesel(table_name = items)]
         struct NewItem {
             name: &'static str,
             location: ::pg::types::geometric::PgPoint,
@@ -220,6 +215,7 @@ mod tests {
         let mut connection = connection();
         // Compile check that PgPoint can be used in queryable context,
         #[derive(Debug, Clone, Queryable)]
+        #[allow(dead_code)]
         struct Item {
             id: i32,
             name: String,
@@ -245,7 +241,7 @@ mod tests {
             ).unwrap();
         use self::schema::box_roundtrip;
         #[derive(Debug, PartialEq, Insertable, Queryable)]
-        #[table_name = "box_roundtrip"]
+        #[diesel(table_name = box_roundtrip)]
         struct Roundtrip {
             id: i32,
             boxes: Option<::pg::types::geometric::PgBox>,
@@ -300,7 +296,7 @@ mod tests {
             ).unwrap();
         use self::schema::circle_roundtrip;
         #[derive(Debug, PartialEq, Insertable, Queryable)]
-        #[table_name = "circle_roundtrip"]
+        #[diesel(table_name = circle_roundtrip)]
         struct Roundtrip {
             id: i32,
             circles: Option<::pg::types::geometric::PgCircle>,
