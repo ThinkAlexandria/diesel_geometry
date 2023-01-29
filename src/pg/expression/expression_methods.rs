@@ -1,10 +1,9 @@
 use diesel::expression::{AsExpression, Expression};
-use diesel::pg::expression::operators::IsContainedBy;
 
-use super::operators::SameAs;
+use super::operators::{IsContainedBy, SameAs};
 use sql_types::{self, Circle, Point};
 
-pub trait PgSameAsExpressionMethods<ST>: Expression + Sized {
+pub trait PgSameAsExpressionMethods<ST: diesel::sql_types::SingleValue>: Expression + Sized {
     /// Creates a PostgresSQL `~=`  expression.
     ///
     /// The "same as" operator, ~=, represents the usual notion of equality for the `point`, `box`,
@@ -22,14 +21,14 @@ pub trait PgSameAsExpressionMethods<ST>: Expression + Sized {
     /// #
     /// # fn main() {
     /// #     use schema::shapes::dsl::*;
-    /// #     let connection = establish_connection();
+    /// #     let mut connection = establish_connection();
     /// let found_drawing_id = shapes
     ///     .select(drawing_id)
     ///     .filter(centroid.same_as(PgPoint(1.0, 2.0)))
-    ///     .first(&connection);
+    ///     .first(&mut connection);
     /// assert_eq!(Ok(2), found_drawing_id);
     /// # }
-    fn same_as<T>(self: Self, other: T) -> SameAs<Self, T::Expression>
+    fn same_as<T>(self, other: T) -> SameAs<Self, T::Expression>
     where
         T: AsExpression<ST>,
     {
@@ -41,7 +40,7 @@ impl<T: Expression<SqlType = Point>> PgSameAsExpressionMethods<Point> for T {}
 impl<T: Expression<SqlType = sql_types::Box>> PgSameAsExpressionMethods<sql_types::Box> for T {}
 impl<T: Expression<SqlType = Circle>> PgSameAsExpressionMethods<Circle> for T {}
 
-pub trait PgIsContainedByExpressionMethods<ST>: Expression + Sized {
+pub trait PgIsContainedByExpressionMethods<ST: diesel::sql_types::SingleValue>: Expression + Sized {
     /// Creates a PostgresSQL `<@` expression.
     ///
     /// For geometric types.
@@ -57,7 +56,7 @@ pub trait PgIsContainedByExpressionMethods<ST>: Expression + Sized {
     /// #
     /// # fn main() {
     /// #     use schema::shapes::dsl::*;
-    /// #     let connection = establish_connection();
+    /// #     let mut connection = establish_connection();
     /// // Looking for point at (1,2)
     /// let found_drawing_id = shapes
     ///     .select(drawing_id)
@@ -66,10 +65,11 @@ pub trait PgIsContainedByExpressionMethods<ST>: Expression + Sized {
     ///             PgBox(PgPoint(0.5, 1.5), PgPoint(3.0,5.0)).into_sql::<sql_types::Box>()
     ///         )
     ///     )
-    ///     .first(&connection);
+    ///     .first(&mut connection);
     /// assert_eq!(Ok(2), found_drawing_id);
     /// # }
-    fn is_contained_by<T>(self: Self, other: T) -> IsContainedBy<Self, T::Expression>
+    #[allow(clippy::wrong_self_convention)]
+    fn is_contained_by<T>(self, other: T) -> IsContainedBy<Self, T::Expression>
     where
         T: AsExpression<ST>,
     {

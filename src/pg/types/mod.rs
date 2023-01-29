@@ -37,8 +37,8 @@ pub mod sql_types {
     /// # fn main() {
     /// #     use diesel::insert_into;
     /// #     use items::dsl::*;
-    /// #     let connection = connection_no_data();
-    /// #     connection.execute("CREATE TABLE items (
+    /// #     let mut connection = connection_no_data();
+    /// #     connection.batch_execute("CREATE TABLE items (
     /// #         id SERIAL PRIMARY KEY,
     /// #         name VARCHAR NOT NULL,
     /// #         location POINT NOT NULL
@@ -46,12 +46,12 @@ pub mod sql_types {
     /// let inserted_location = insert_into(items)
     ///     .values((name.eq("Shiny Thing"), location.eq(PgPoint(3.1, 9.4))))
     ///     .returning(location)
-    ///     .get_result(&connection);
+    ///     .get_result(&mut connection);
     /// assert_eq!(Ok(PgPoint(3.1, 9.4)), inserted_location);
     /// # }
     /// ```
     #[derive(Debug, Clone, Copy, Default, QueryId, SqlType)]
-    #[postgres(oid = "600", array_oid = "1017")]
+    #[diesel(postgres_type(oid = 600, array_oid = 1017))]
     pub struct Point;
 
     /// The PostgreSQL [Box](https://www.postgresql.org/docs/current/static/datatype-geometric.html) type.
@@ -90,8 +90,8 @@ pub mod sql_types {
     /// #     use diesel::insert_into;
     /// #     use diesel_geometry::prelude::*;
     /// #     use items::dsl::*;
-    /// #     let connection = connection_no_data();
-    /// #     connection.execute("CREATE TABLE items (
+    /// #     let mut connection = connection_no_data();
+    /// #     connection.batch_execute("CREATE TABLE items (
     /// #         id SERIAL PRIMARY KEY,
     /// #         name VARCHAR NOT NULL,
     /// #         location POINT NOT NULL
@@ -99,19 +99,19 @@ pub mod sql_types {
     /// insert_into(items)
     ///     .values((name.eq("Shiny Thing"), location.eq(PgPoint(3.1, 9.4))))
     ///     .returning(location)
-    ///     .execute(&connection)
+    ///     .execute(&mut connection)
     ///     .unwrap();
     /// let inserted_location = items
     ///     .select(location)
     ///     .filter(location.is_contained_by(
     ///         PgBox(PgPoint(0.,0.), PgPoint(10.,10.)).into_sql::<sql_types::Box>()
     ///     ))
-    ///     .first(&connection);
+    ///     .first(&mut connection);
     /// assert_eq!(Ok(PgPoint(3.1, 9.4)), inserted_location);
     /// # }
     /// ```
     #[derive(Debug, Clone, Copy, Default, QueryId, SqlType)]
-    #[postgres(oid = "603", array_oid = "1020")]
+    #[diesel(postgres_type(oid = 603, array_oid = 1020))]
     pub struct Box;
 
     /// The PostgreSQL [Circle](https://www.postgresql.org/docs/current/static/datatype-geometric.html) type.
@@ -149,8 +149,8 @@ pub mod sql_types {
     /// # fn main() {
     /// #     use diesel::insert_into;
     /// #     use items::dsl::*;
-    /// #     let connection = connection_no_data();
-    /// #     connection.execute("CREATE TABLE items (
+    /// #     let mut connection = connection_no_data();
+    /// #     connection.batch_execute("CREATE TABLE items (
     /// #         id SERIAL PRIMARY KEY,
     /// #         name VARCHAR NOT NULL,
     /// #         location CIRCLE NOT NULL
@@ -158,11 +158,11 @@ pub mod sql_types {
     /// let inserted_location = insert_into(items)
     ///     .values((name.eq("Shiny Thing"), location.eq(PgCircle(PgPoint(3.1, 6.6), 9.4))))
     ///     .returning(location)
-    ///     .get_result(&connection);
+    ///     .get_result(&mut connection);
     /// assert_eq!(Ok(PgCircle(PgPoint(3.1, 6.6), 9.4)), inserted_location);
     /// # }
     /// ```
     #[derive(Debug, Clone, Copy, Default, QueryId, SqlType)]
-    #[postgres(oid = "718", array_oid = "719")]
+    #[diesel(postgres_type(oid = 718, array_oid = 719))]
     pub struct Circle;
 }
